@@ -1,80 +1,160 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VPS Fetch/Write Demo</title>
-  <style>
-    body{font-family:system-ui,Arial;padding:2rem;max-width:760px;margin:auto;line-height:1.5}
-    .card{padding:1rem;border:1px solid #ddd;border-radius:12px;margin:1rem 0}
-    .row{margin:.75rem 0}
-    button{padding:.6rem 1rem;cursor:pointer}
-    .ok{color:green}.err{color:#b00020}
-    pre{background:#fafafa;border:1px solid #eee;padding:1rem;border-radius:8px;overflow:auto}
-  </style>
-<script defer src="https://analytics.laranjaldojari.cloud/script.js" data-website-id="8586785e-233c-4001-9410-b826b03dd69c"></script>  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VPS Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script defer src="https://analytics.laranjaldojari.cloud/script.js"
+data-website-id="8586785e-233c-4001-9410-b826b03dd69c"></script>
 </head>
-<body>
-  <h1>VPS Fetch/Write Demo</h1>
-  <p>This page is served by Node.js on your VPS. Use the buttons to call real API routes.</p>
-  <div class="card">
-    <h3>Read: Fetch Data (GET)</h3>
-    <div class="row">
-      <button id="getBtn">Fetch Data</button>
-      <span id="getMsg"></span>
+
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+
+<div class="container mx-auto px-6 py-10">
+
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <h1 class="text-5xl font-bold mb-3 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            VPS Dashboard
+        </h1>
+        <p class="text-slate-400 text-lg">
+            Node.js API Demo • Read, Write and Monitor Metrics
+        </p>
     </div>
-  </div>
-  <div class="card">
-    <h3>Write: Save an Event (POST)</h3>
-    <div class="row">
-      <button id="writeBtn">Write Data</button>
-      <span id="writeMsg"></span>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+
+        <!-- GET CARD -->
+        <div class="bg-slate-800/60 backdrop-blur-lg border border-slate-700 rounded-2xl shadow-xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-2xl">
+                    📥
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold">Fetch Data</h2>
+                    <p class="text-slate-400 text-sm">
+                        Read information from the server
+                    </p>
+                </div>
+            </div>
+
+            <button id="getBtn"
+                class="w-full bg-cyan-600 hover:bg-cyan-500 transition duration-300 rounded-xl py-3 font-medium">
+                Fetch Server Time
+            </button>
+
+            <div id="getMsg" class="mt-4 text-sm"></div>
+        </div>
+
+        <!-- POST CARD -->
+        <div class="bg-slate-800/60 backdrop-blur-lg border border-slate-700 rounded-2xl shadow-xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-2xl">
+                    ✍️
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold">Write Data</h2>
+                    <p class="text-slate-400 text-sm">
+                        Save an event to the database
+                    </p>
+                </div>
+            </div>
+
+            <button id="writeBtn"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 transition duration-300 rounded-xl py-3 font-medium">
+                Save Event
+            </button>
+
+            <div id="writeMsg" class="mt-4 text-sm"></div>
+        </div>
+
     </div>
-  </div>
-  <div class="card">
-    <h3>Metrics (Live)</h3>
-    <pre id="metricsBox">Loading…</pre>
-  </div>
+
+    <!-- Metrics -->
+    <div class="mt-8 bg-slate-800/60 backdrop-blur-lg border border-slate-700 rounded-2xl shadow-xl p-6">
+
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-2xl font-semibold">📊 Live Metrics</h2>
+                <p class="text-slate-400 text-sm">
+                    Real-time server statistics
+                </p>
+            </div>
+
+            <button onclick="loadMetrics()"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm">
+                Refresh
+            </button>
+        </div>
+
+        <pre id="metricsBox"
+            class="bg-slate-900 border border-slate-700 rounded-xl p-4 overflow-auto text-sm text-green-400">
+Loading...
+        </pre>
+
+    </div>
+
+</div>
+
 <script>
-const $ = (id)=>document.getElementById(id);
-async function getJSON(url, opts){ const r=await fetch(url,opts); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
-$('getBtn').onclick = async () => {
-  try {
-    const data = await getJSON('/api/time');
-    $('getMsg').textContent = 'Server time: ' + data.time;
-    $('getMsg').className = 'ok';
-    window.umami?.track('fetch_data');
-  } catch {
-    $('getMsg').textContent = 'Error';
-    $('getMsg').className = 'err';
-  }
-};
-$('writeBtn').onclick = async () => {
-  try {
-    const data = await getJSON('/api/demo-write', { method:'POST' });
-    $('writeMsg').textContent = 'Writes so far: ' + data.total;
-    $('writeMsg').className = 'ok';
-    window.umami?.track('write_data');
-    loadMetrics();
-  } catch {
-    $('writeMsg').textContent = 'Error';
-    $('writeMsg').className = 'err';
-  }
-};
-async function loadMetrics(){
-  try {
-    const m = await getJSON('/api/metrics');
-    $('metricsBox').textContent = JSON.stringify(m, null, 2);
-  } catch {
-    $('metricsBox').textContent = 'Error loading metrics';
-  }
+const $ = (id) => document.getElementById(id);
+
+async function getJSON(url, opts) {
+    const r = await fetch(url, opts);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
 }
+
+$('getBtn').onclick = async () => {
+    try {
+        const data = await getJSON('/api/time');
+
+        $('getMsg').innerHTML =
+            `<span class="text-green-400">✅ Server time:</span> ${data.time}`;
+
+        window.umami?.track('fetch_data');
+    } catch {
+        $('getMsg').innerHTML =
+            `<span class="text-red-400">❌ Error fetching data</span>`;
+    }
+};
+
+$('writeBtn').onclick = async () => {
+    try {
+        const data = await getJSON('/api/demo-write', {
+            method: 'POST'
+        });
+
+        $('writeMsg').innerHTML =
+            `<span class="text-green-400">✅ Total writes:</span> ${data.total}`;
+
+        window.umami?.track('write_data');
+
+        loadMetrics();
+    } catch {
+        $('writeMsg').innerHTML =
+            `<span class="text-red-400">❌ Error writing data</span>`;
+    }
+};
+
+async function loadMetrics() {
+    try {
+        const metrics = await getJSON('/api/metrics');
+
+        $('metricsBox').textContent =
+            JSON.stringify(metrics, null, 2);
+
+    } catch {
+        $('metricsBox').textContent =
+            'Error loading metrics';
+    }
+}
+
 loadMetrics();
 </script>
+
 </body>
 </html>
-
-
-
-
-
